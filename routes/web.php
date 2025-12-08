@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\ProductController;
+use App\Http\Controllers\User\HomeController;
+
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -16,8 +18,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+
 // Alias routes untuk backward compatibility
 Route::middleware(['auth'])->group(function () {
+    
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 });
@@ -33,6 +37,9 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
     Route::prefix('user')->name('user.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
+
+        //Home route
+        Route::get('/home', [HomeController::class, 'index']);
 
         // Products routes
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
