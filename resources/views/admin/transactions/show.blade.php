@@ -81,6 +81,8 @@
                         <p class="font-semibold text-gray-900 text-sm">{{ $transaction->address->label }}</p>
                     @endif
                     <p class="text-sm text-gray-600">{{ $transaction->address->address_text }}</p>
+                    <p class="mb-1">@if($transaction->address->district)District: {{ $transaction->address->district }}@endif</p>
+                    <p class="mb-1">@if($transaction->address->subdistrict)Subdistrict: {{ $transaction->address->subdistrict }}@endif</p>
                     <p class="text-xs text-gray-600 mt-1">
                         {{ $transaction->address->city }}{{ $transaction->address->city && $transaction->address->province ? ', ' : '' }}
                         {{ $transaction->address->province }}

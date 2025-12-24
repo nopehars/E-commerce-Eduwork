@@ -17,6 +17,8 @@ class Address extends Model
         'address_text',
         // Use string city/province (RajaOngkir numeric IDs are not stored in this schema)
         'city',
+        'district',
+        'subdistrict',
         'province',
         'postal_code',
         'is_primary',

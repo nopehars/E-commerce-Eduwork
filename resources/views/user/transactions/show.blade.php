@@ -117,6 +117,8 @@
                                     @endif
                                     <p class="mb-1">Number Phone : {{ $transaction->address->phone }}</p>
                                     <p class="mb-3">Address :<br>{{ $transaction->address->address_text }}</p>
+                                    <p class="mb-1">@if($transaction->address->district)District: {{ $transaction->address->district }}@endif</p>
+                                    <p class="mb-1">@if($transaction->address->subdistrict)Subdistrict: {{ $transaction->address->subdistrict }}@endif</p>
                                     <p class="text-sm text-gray-600">{{ $transaction->address->city }}, {{ $transaction->address->province }} {{ $transaction->address->postal_code }}</p>
                                 </div>
                             </div>

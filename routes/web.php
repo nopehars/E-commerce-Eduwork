@@ -41,7 +41,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Contact page route
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-        
+
     // Maintain legacy '/profile' routes for backward compatibility
     Route::get('/profile', [ProfileController::class, 'edit']);
     Route::patch('/profile', [ProfileController::class, 'update']);
@@ -58,6 +58,11 @@ Route::middleware(['auth'])->group(function () {
 
         //Home route
         Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+        // address get cities,district route
+        Route::get('/address/cities/{provinceId}', [AddressController::class, 'getCities']);
+        Route::get('/address/districts/{cityId}', [AddressController::class, 'getDistricts']);
+
 
         // Products routes
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

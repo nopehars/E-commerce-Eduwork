@@ -66,6 +66,9 @@
 
                     <p class="mb-3">Address :<br>{{ $address->address_text }}</p>
 
+                    <p class="mb-1">@if($address->district)District: {{ $address->district }}@endif</p>
+                    <p class="mb-1">@if($address->subdistrict)Subdistrict: {{ $address->subdistrict }}@endif</p>
+
                     <p class="text-sm text-gray-600">
                         @if($address->city){{ $address->city }}{{ $address->province ? ', ' : '' }}@endif
                         @if($address->province){{ $address->province }}@endif
@@ -84,6 +87,8 @@
                         <input type="hidden" name="phone" value="{{ $address->phone }}">
                         <input type="hidden" name="address_text" value="{{ $address->address_text }}">
                         <input type="hidden" name="city" value="{{ $address->city }}">
+                        <input type="hidden" name="district" value="{{ $address->district }}">
+                        <input type="hidden" name="subdistrict" value="{{ $address->subdistrict }}">
                         <input type="hidden" name="province" value="{{ $address->province }}">
                         <input type="hidden" name="postal_code" value="{{ $address->postal_code }}">
 

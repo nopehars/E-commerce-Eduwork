@@ -34,6 +34,8 @@
                                             @endif
 
                                             <p class="text-gray-700 text-sm">{{ $address->address_text }}</p>
+                                            <p class="mb-1">@if($address->district)District: {{ $address->district }}@endif</p>
+                                            <p class="mb-1">@if($address->subdistrict)Subdistrict: {{ $address->subdistrict }}@endif</p>
                                             <p class="text-gray-600 text-xs">
                                                 {{ $address->city ?? '' }}{{ $address->city && $address->province ? ', ' : '' }}{{ $address->province ?? '' }}
                                                 {{ $address->postal_code ? ' ' . $address->postal_code : '' }}
