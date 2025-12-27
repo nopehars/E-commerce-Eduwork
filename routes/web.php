@@ -83,7 +83,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checkout/pay', [CheckoutController::class, 'pay'])->name('checkout.pay');
         // Simulation route removed for production
         Route::post('/checkout/notify', [CheckoutController::class, 'notifyPayment'])->name('checkout.notify');
-
+        // Shipping cost route
+        Route::post('/checkout/ongkir', [CheckoutController::class, 'calculateOngkir'])->name('checkout.ongkir');
         // Transactions routes (view user's own orders)
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         // Cancel a user's pending transaction

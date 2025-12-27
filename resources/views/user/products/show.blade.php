@@ -57,6 +57,11 @@
 
                         <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $product->name }}</h1>
 
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-medium">Weight:</span>
+                            {{ $product->weight ? $product->weight . ' g (' . number_format($product->weight / 1000, 2) . ' kg)' : 'N/A' }}
+                        </p>
+
                         <p class="text-3xl font-bold text-blue-600 mb-6">Rp {{ number_format($product->price) }}</p>
 
                         <div class="mb-6">
