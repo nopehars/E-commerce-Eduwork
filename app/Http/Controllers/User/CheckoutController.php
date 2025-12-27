@@ -11,6 +11,8 @@ use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Address;
+use Illuminate\Support\Facades\Http;
 
 class CheckoutController extends Controller
 {
@@ -20,10 +22,6 @@ class CheckoutController extends Controller
     {
         $this->midtransService = $midtransService;
     }
-
-    /**
-     * Generate a unique order id for Midtrans to avoid duplicate order_id errors.
-     */
     protected function generateUniqueOrderId($transactionId)
     {
         return $transactionId . '-' . bin2hex(random_bytes(5));
@@ -44,8 +42,75 @@ class CheckoutController extends Controller
         $addresses = \App\Models\Address::where('user_id', Auth::id())->get();
         $total = $cartItems->sum(fn($item) => $item->product->price * $item->quantity);
 
-        return view('user.checkout.index', compact('cartItems', 'addresses', 'total'));
+        // Total weight in grams (default to 1000g per product if weight not set)
+        $totalWeight = $cartItems->sum(fn($item) => ($item->product->weight ?? 1000) * $item->quantity);
+
+        return view('user.checkout.index', compact('cartItems', 'addresses', 'total', 'totalWeight'));
     }
+    public function calculateOngkir(Request $request)
+    {
+        $request->validate([
+            'address_id' => 'required|exists:addresses,id',
+            'courier' => 'required|string',
+        ]);
+
+        $address = Address::where('id', $request->address_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (empty($address->district_id)) {
+            return response()->json(['message' => 'Alamat belum memiliki kode kecamatan (district_id). Silakan perbarui alamat.'], 400);
+        }
+
+        // Total berat cart (GRAM)
+        $weight = CartItem::where('user_id', Auth::id())
+            ->with('product')
+            ->get()
+            ->sum(fn ($item) => ($item->product->weight ?? 1000) * $item->quantity);
+
+        $weight = max(1000, (int) $weight);
+
+
+        $origin = 1370;
+
+        $response = Http::asForm()
+            ->withHeaders([
+                'Accept' => 'application/json',
+                'Key' => config('rajaongkir.api_key'),
+            ])
+            ->post('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', [
+                'origin' => $origin,
+                'destination' => $address->district_id,
+                'weight' => $weight,
+                'courier' => $request->courier,
+            ]);
+
+        if (! $response->successful()) {
+            \Illuminate\Support\Facades\Log::warning('RajaOngkir calculate/domestic-cost failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'request' => ['origin' => $origin, 'destination' => $address->district_id, 'weight' => $weight, 'courier' => $request->courier],
+            ]);
+
+            $body = $response->json() ?? ['raw' => $response->body()];
+
+            return response()->json(['message' => 'Ongkir gagal dihitung', 'error' => $body], $response->status() ?: 500);
+        }
+
+        $services = collect($response->json('data') ?? [])
+            ->map(fn ($s) => [
+                'service' => $s['service'] ?? ($s['code'] ?? 'unknown'),
+                'cost' => isset($s['cost']) ? (int) $s['cost'] : (int) ($s['price'] ?? 0),
+                'etd' => $s['etd'] ?? null,
+            ])
+            ->filter(fn ($s) => $s['cost'] > 0)
+            ->sortBy('cost')
+            ->values()
+            ->all();
+
+        return response()->json($services);
+    }
+
 
     public function pay(Request $request)
     {
@@ -66,9 +131,6 @@ class CheckoutController extends Controller
 
         $subtotal = $cartItems->sum(fn($item) => $item->product->price * $item->quantity);
         $total = $subtotal + $validated['shipping_fee'];
-
-        // NOTE: Do not attempt to contact Midtrans during checkout submission.
-        // We only create the Transaction and a pending Payment record here.
 
         $transaction = DB::transaction(function () use ($user, $cartItems, $validated, $subtotal, $total) {
             // Create transaction
@@ -94,12 +156,6 @@ class CheckoutController extends Controller
 
 
             }
-
-
-            // Force Midtrans as the payment gateway for all orders. We DO NOT call Midtrans here.
-
-            // Create a pending payment attempt. Snap token and gateway-specific details
-            // will be created/updated when the user visits the payment page and clicks Pay.
             $payment = Payment::create([
                 'transaction_id' => $transaction->id,
                 'user_id' => Auth::id(),
@@ -110,9 +166,6 @@ class CheckoutController extends Controller
                 'amount' => $total,
                 'status' => Payment::STATUS_PENDING,
             ]);
-
-            // Do not clear the cart here. Cart items will be removed when payment is successful
-            // to allow users to retry payment without losing their cart if payment fails.
             return $transaction;
         });
 
@@ -150,9 +203,6 @@ class CheckoutController extends Controller
         }
 
         $transaction->load('items.product', 'address', 'user', 'payments');
-
-        // If there is a pending payment, reuse it. Otherwise create a fresh payment attempt (new snap token).
-        // If a pending payment exists but has no snap token, attempt to generate one and update it.
         $pending = $transaction->payments()->where('status', Payment::STATUS_PENDING)->latest()->first();
             if ($pending) {
             if (empty($pending->snap_token) && $pending->payment_gateway === 'midtrans') {
@@ -250,10 +300,6 @@ class CheckoutController extends Controller
         ]);
 
         $orderId = (string) $request->order_id;
-
-        // Find the transaction either by numeric ID or by a payment with the gateway_reference.
-        // For webhook notifications we should allow unauthenticated requests (server-to-server),
-        // but preserve ownership checks when the requester is an authenticated user.
         $transaction = null;
         if (ctype_digit($orderId)) {
             $transaction = Transaction::find((int)$orderId);
@@ -327,14 +373,12 @@ class CheckoutController extends Controller
         $payment->update([
             'status' => $paymentStatus ?? $payment->status,
             'response_payload' => $statusResponse,
-            // Update `payment_method` with gateway's payment_type when available
             'payment_method' => $statusResponse['payment_type'] ?? $payment->payment_method,
             'gateway_reference' => $statusResponse['transaction_id'] ?? $payment->gateway_reference,
             'paid_at' => in_array($paymentStatus, [Payment::STATUS_SUCCESS]) ? now() : $payment->paid_at,
         ]);
 
-        // If payment succeeded, reduce stock and remove purchased quantities from the user's cart,
-        // then mark the transaction as paid. All done inside a DB transaction to keep things consistent.
+
         if ($payment->status === Payment::STATUS_SUCCESS) {
             if ($transaction->status !== 'paid') {
                 DB::transaction(function () use ($transaction) {
