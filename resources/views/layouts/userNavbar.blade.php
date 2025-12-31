@@ -127,6 +127,8 @@
 
                         <a href="{{ route('user.addresses.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Addresses</a>
 
+                        <a href="{{ route('user.transactions.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</a>
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Log Out</button>
@@ -146,6 +148,8 @@
                            class="{{ request()->routeIs('user.products.*') ? 'text-black font-medium underline' : 'text-gray-700' }}">
                             Product
                         </a>
+
+                        <a href="{{ route('user.transactions.index') }}" class="{{ request()->routeIs('user.transactions.*') ? 'text-black font-medium underline' : 'text-gray-700' }}">My Orders</a>
 
                         <a href="{{ url('/about') }}" class="{{ request()->is('about') ? 'text-black font-medium underline' : 'text-gray-700' }}">About</a>
                         <a href="{{ url('/contact') }}" class="{{ request()->is('contact') ? 'text-black font-medium underline' : 'text-gray-700' }}">Contact</a>

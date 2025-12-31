@@ -26,6 +26,31 @@ class TransactionController extends Controller
         $this->midtransService = $midtransService;
     }
 
+    /**
+     * Display a listing of the user's transactions (orders).
+     * Paginated 5 per page.
+     */
+    public function index(Request $request)
+    {
+        $allowedStatuses = ['pending', 'paid', 'success', 'cancelled'];
+
+        $query = Transaction::where('user_id', Auth::id())
+            ->with('items.product', 'address', 'payments')
+            ->orderByDesc('created_at');
+
+        if ($request->filled('status') && in_array($request->status, $allowedStatuses)) {
+            $query->where('status', $request->status);
+        }
+
+        $transactions = $query->paginate(5)->withQueryString();
+
+        return view('user.transactions.index', [
+            'transactions' => $transactions,
+            'filterStatus' => $request->status,
+            'allowedStatuses' => $allowedStatuses,
+        ]);
+    }
+
     public function show(Transaction $transaction)
     {
         // Check if transaction belongs to authenticated user

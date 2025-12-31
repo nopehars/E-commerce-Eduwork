@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         // Shipping cost route
         Route::post('/checkout/ongkir', [CheckoutController::class, 'calculateOngkir'])->name('checkout.ongkir');
         // Transactions routes (view user's own orders)
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         // Cancel a user's pending transaction
         Route::post('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');
