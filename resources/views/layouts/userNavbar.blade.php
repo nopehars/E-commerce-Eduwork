@@ -24,7 +24,7 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
                     <div class="flex items-center flex-shrink-0">
-                        <a href="{{ route('user.dashboard') }}" class="flex items-center ">
+                        <a href="{{ route('user.home') }}" class="flex items-center ">
                             <x-site-logo class="mr-2" />
                             <span class="sr-only">{{ config('app.name', 'Logo') }}</span>
                         </a>
