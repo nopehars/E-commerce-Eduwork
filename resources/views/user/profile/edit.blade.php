@@ -62,7 +62,7 @@
                 {{-- BUTTONS --}}
                 <div class="flex justify-end items-center gap-6 pt-4">
 
-                    <a href="{{ route('user.dashboard') }}"
+                    <a href="{{ route('user.home') }}"
                        class="text-gray-600 font-medium hover:text-gray-800">
                         Cancel
                     </a>
