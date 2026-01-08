@@ -4,7 +4,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\ProductController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\WishlistController;
-use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\TransactionController;
@@ -20,11 +19,11 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::get('/', function () {
     if (auth('web')->check()) {
-        // Redirect berdasarkan role: admin ke admin.dashboard, user ke user.dashboard
+        // Redirect berdasarkan role: admin ke admin.dashboard, user ke user.home
         if (auth('web')->user()->is_admin) {
             return redirect()->route('admin.dashboard');
         }
-        return redirect()->route('user.dashboard');
+        return redirect()->route('user.home');
     }
     return redirect()->route('login');
 });
@@ -46,17 +45,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
-    // Global dashboard route: redirect based on user role (admin -> admin.dashboard, user -> user.dashboard)
+    // Global dashboard route: redirect based on user role (admin -> admin.dashboard, user -> user.home)
     Route::get('/dashboard', function () {
         if (auth('web')->check() && auth('web')->user()->is_admin) {
             return redirect()->route('admin.dashboard');
         }
-        return redirect()->route('user.dashboard');
+        return redirect()->route('user.home');
     })->name('dashboard');
     Route::prefix('user')->name('user.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        //Home route
+            //Home route
         Route::get('/home', [HomeController::class, 'index'])->name('home');
 
         // address get cities,district route
