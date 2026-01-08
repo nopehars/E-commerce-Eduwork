@@ -20,7 +20,16 @@
 
                     <div class="flex justify-between mb-2">
                         <span class="text-gray-700">Order #{{ $transaction->id }}</span>
-                        <span class="font-bold text-gray-900">Rp {{ number_format($transaction->total_amount + $transaction->shipping_fee) }}</span>
+                        <span class="font-bold text-gray-900">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</span>
+                    </div>
+
+                    <div class="flex justify-between text-gray-700 text-sm">
+                        <span>Subtotal:</span>
+                        <span>Rp {{ number_format(max(0, $transaction->total_amount - $transaction->shipping_fee), 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between text-gray-700 text-sm mb-2">
+                        <span>Shipping:</span>
+                        <span>Rp {{ number_format($transaction->shipping_fee, 0, ',', '.') }}</span>
                     </div>
 
                     <!-- Replace payment meta with item summary -->
@@ -176,7 +185,7 @@
                             await notifyServer(result.order_id);
                             hideLoading();
                             if (NF && NF.Notify) NF.Notify.success('Payment successful.');
-                            window.location.href = '/user/dashboard?payment=success&order=' + result.order_id;
+                            window.location.href = '{{ route('user.home') }}?payment=success&order=' + result.order_id;
                         },
                         onPending: function(result) {
                             hideLoading();
@@ -250,7 +259,7 @@
 
                         openSnapToken(token);
                     } catch (err) {
-                        // error already handled in ensureSnapToken
+
                     }
                 });
             }

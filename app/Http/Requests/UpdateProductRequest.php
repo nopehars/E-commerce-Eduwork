@@ -32,6 +32,7 @@ class UpdateProductRequest extends FormRequest
             'description' => 'nullable|string',
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
+            'weight' => 'nullable|integer|min:0',
             'active' => 'boolean',
             // validate images array (new uploads) up to 3 files
             'images' => 'nullable|array|max:3',

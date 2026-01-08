@@ -27,12 +27,12 @@
         <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
-                <div class="flex items-center flex-shrink-0">
-                    <a href="{{ route('user.dashboard') }}" class="flex items-center ">
-                        <x-site-logo class="mr-2" />
-                        <span class="sr-only">{{ config('app.name', 'Logo') }}</span>
-                    </a>
-                </div>
+                    <div class="flex items-center flex-shrink-0">
+                        <a href="{{ route('user.home') }}" class="flex items-center ">
+                            <x-site-logo class="mr-2" />
+                            <span class="sr-only">{{ config('app.name', 'Logo') }}</span>
+                        </a>
+                    </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -133,8 +133,9 @@
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
                     @endif
 
-                    <a href="{{ route('user.addresses.index') }}"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Addresses</a>
+                        <a href="{{ route('user.addresses.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Addresses</a>
+
+                        <a href="{{ route('user.transactions.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</a>
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -153,10 +154,12 @@
                         Home
                     </a>
 
-                    <a href="{{ route('user.products.index') }}"
-                        class="{{ request()->routeIs('user.products.*') ? 'text-black font-medium underline' : 'text-gray-700' }}">
-                        Product
-                    </a>
+                        <a href="{{ route('user.products.index') }}"
+                           class="{{ request()->routeIs('user.products.*') ? 'text-black font-medium underline' : 'text-gray-700' }}">
+                            Product
+                        </a>
+
+                        <a href="{{ route('user.transactions.index') }}" class="{{ request()->routeIs('user.transactions.*') ? 'text-black font-medium underline' : 'text-gray-700' }}">My Orders</a>
 
                     <a href="{{ url('/about') }}"
                         class="{{ request()->is('about') ? 'text-black font-medium underline' : 'text-gray-700' }}">About</a>
@@ -214,20 +217,20 @@
                 });
             }
 
-            // Update cart badge count
-            @auth
-            fetch('{{ route('user.cart.count') }}')
-                .then(response => response.json())
-                .then(data => {
-                    const cartBadge = document.getElementById('cart-badge');
-                    if (cartBadge && data && typeof data.count !== 'undefined') {
-                        cartBadge.textContent = data.count;
-                    }
-                })
-                .catch(e => console.log('Cart badge error:', e));
-        @endauth
-        });
-    </script>
-</body>
-
+                // Update cart badge count
+                @auth
+                    fetch('{{ route("user.cart.count") }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            const cartBadge = document.getElementById('cart-badge');
+                            if (cartBadge && data && typeof data.count !== 'undefined') {
+                                cartBadge.textContent = data.count;
+                            }
+                        })
+                        .catch(e => console.log('Cart badge error:', e));
+                @endauth
+            });
+        </script>
+        @stack('scripts')
+    </body>
 </html>

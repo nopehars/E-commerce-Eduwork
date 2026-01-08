@@ -30,6 +30,7 @@ class StoreProductRequest extends FormRequest
             'description' => 'nullable|string',
             'price' => 'required|integer|min:0',
             'stock' => 'required|integer|min:0',
+            'weight' => 'nullable|integer|min:0',
             'active' => 'boolean',
             // allow up to 3 files to be uploaded at once; no explicit size limit here
             'images' => 'nullable|array|max:3',

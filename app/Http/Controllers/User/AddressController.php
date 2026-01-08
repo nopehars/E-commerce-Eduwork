@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class AddressController extends Controller
 {
@@ -18,21 +19,64 @@ class AddressController extends Controller
 
     public function create()
     {
-        return view('user.addresses.form');
+        $provinces = [];
+
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Key' => config('rajaongkir.api_key'),
+        ])->get('https://rajaongkir.komerce.id/api/v1/destination/province');
+
+        if ($response->successful()) {
+            $provinces = $response->json('data') ?? [];
+        }
+
+        return view('user.addresses.form', compact('provinces'));
     }
+
+    public function getCities($provinceId)
+    {
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Key' => config('rajaongkir.api_key'),
+        ])->get("https://rajaongkir.komerce.id/api/v1/destination/city/{$provinceId}");
+
+        if ($response->successful()) {
+            return response()->json($response->json('data') ?? []);
+        }
+
+        return response()->json([], 500);
+    }
+
+    public function getDistricts($cityId)
+{
+    $response = Http::withHeaders([
+        'Accept' => 'application/json',
+        'Key' => config('rajaongkir.api_key'),
+    ])->get("https://rajaongkir.komerce.id/api/v1/destination/district/{$cityId}");
+
+    if ($response->successful()) {
+        return response()->json($response->json('data') ?? []);
+    }
+
+    return response()->json([], 500);
+}
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'recipient_name' => 'nullable|string|max:150',
-            'phone' => 'nullable|string|max:30',
-            'label' => 'nullable|string|max:100',
-            'address_text' => 'required|string|max:500',
-            'city' => 'nullable|string|max:100',
-            'province' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'is_primary' => 'boolean',
-        ]);
+    $validated = $request->validate([
+    'recipient_name' => 'nullable|string|max:150',
+    'phone' => 'nullable|string|max:30',
+    'label' => 'nullable|string|max:100',
+    'address_text' => 'required|string|max:500',
+    'province' => 'nullable|string|max:100',
+    'city' => 'nullable|string|max:100',
+    'district_id' => 'nullable|string|max:100',
+    'district' => 'nullable|string|max:100',
+    'subdistrict' => 'nullable|string|max:100',
+    'postal_code' => 'nullable|string|max:20',
+    'is_primary' => 'nullable|boolean',
+    ]);
+
 
         $validated['user_id'] = Auth::id();
 
@@ -42,6 +86,7 @@ class AddressController extends Controller
         }
 
         Address::create($validated);
+
         return redirect()->route('user.addresses.index')->with('success', 'Address added.');
     }
 
@@ -50,7 +95,19 @@ class AddressController extends Controller
         if ($address->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
-        return view('user.addresses.form', compact('address'));
+
+        $provinces = [];
+
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Key' => config('rajaongkir.api_key'),
+        ])->get('https://rajaongkir.komerce.id/api/v1/destination/province');
+
+        if ($response->successful()) {
+            $provinces = $response->json('data') ?? [];
+        }
+
+        return view('user.addresses.form', compact('address', 'provinces'));
     }
 
     public function update(Request $request, Address $address)
@@ -60,14 +117,17 @@ class AddressController extends Controller
         }
 
         $validated = $request->validate([
-              'recipient_name' => 'nullable|string|max:150',
-                        'phone' => 'nullable|string|max:30',
+            'recipient_name' => 'nullable|string|max:150',
+            'phone' => 'nullable|string|max:30',
             'label' => 'nullable|string|max:100',
             'address_text' => 'required|string|max:500',
             'city' => 'nullable|string|max:100',
+            'district_id' => 'nullable|string|max:100',
+            'district' => 'nullable|string|max:100',
+            'subdistrict' => 'nullable|string|max:100',
             'province' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'is_primary' => 'boolean',
+            'is_primary' => 'nullable|boolean',
         ]);
 
         if ($validated['is_primary'] ?? false) {
@@ -76,6 +136,7 @@ class AddressController extends Controller
         }
 
         $address->update($validated);
+
         return redirect()->route('user.addresses.index')->with('success', 'Address updated.');
     }
 
@@ -84,7 +145,9 @@ class AddressController extends Controller
         if ($address->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
+
         $address->delete();
+
         return redirect()->route('user.addresses.index')->with('success', 'Address deleted.');
     }
 }

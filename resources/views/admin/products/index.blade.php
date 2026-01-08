@@ -32,6 +32,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Price</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Stock</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Weight</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
                 </tr>
@@ -51,6 +52,7 @@
                                 {{ $product->stock }}
                             </span>
                         </td>
+                        <td class="px-6 py-4 text-sm">{{ $product->weight ? $product->weight . ' g' : '-' }}</td>
                         <td class="px-6 py-4 text-sm">
                             <span class="px-3 py-1 {{ $product->active ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }} rounded-full text-xs font-semibold">
                                 {{ $product->active ? 'Active' : 'Inactive' }}
@@ -67,7 +69,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-600">No products found.</td>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-600">No products found.</td>
                     </tr>
                 @endforelse
             </tbody>

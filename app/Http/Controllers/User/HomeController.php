@@ -15,4 +15,10 @@ class HomeController extends Controller
         $products = Product::where('active', true)->with('category', 'images')->latest()->limit(5)->get();
         return view('user.home.index', compact('categories', 'products'));
     }
+
+    // New contact method
+    public function contact()
+    {
+        return view('user.contact.index');
+    }
 }

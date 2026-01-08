@@ -5,12 +5,14 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\User\AddressController;
+// Duplicate import removed
+// Duplicate import removed
 use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\CategoryController;
 use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\HomeController;
+// Duplicate import removed
 use App\Http\Controllers\User\ProductController;
 use App\Http\Controllers\User\TransactionController;
 use App\Http\Controllers\User\WishlistController;
@@ -20,12 +22,13 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::get('/', function () {
     if (auth('web')->check()) {
-        // Redirect berdasarkan role: admin ke admin.dashboard, user ke user.dashboard
+        // Redirect berdasarkan role: admin ke admin.dashboard, user ke user.home
         if (auth('web')->user()->is_admin) {
             return redirect()->route('admin.dashboard');
         }
 
-        return redirect()->route('user.dashboard');
+        return redirect()->route('user.home');
+
     }
 
     return redirect()->route('login');
@@ -40,23 +43,33 @@ Route::middleware(['auth'])->group(function () {
 
 // User authenticated routes
 Route::middleware(['auth'])->group(function () {
+    // Contact page route
+    Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
     // Maintain legacy '/profile' routes for backward compatibility
     Route::get('/profile', [ProfileController::class, 'edit']);
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
-    // Global dashboard route: redirect based on user role (admin -> admin.dashboard, user -> user.dashboard)
+    // Global dashboard route: redirect based on user role (admin -> admin.dashboard, user -> user.home)
     Route::get('/dashboard', function () {
         if (auth('web')->check() && auth('web')->user()->is_admin) {
             return redirect()->route('admin.dashboard');
         }
 
+        return redirect()->route('user.home');
+
         return redirect()->route('user.dashboard');
     })->name('dashboard');
     Route::prefix('user')->name('user.')->group(function () {
+        // Home route
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Home route
         Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+        // address get cities,district route
+        Route::get('/address/cities/{provinceId}', [AddressController::class, 'getCities']);
+        Route::get('/address/districts/{cityId}', [AddressController::class, 'getDistricts']);
 
         // Products routes
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -79,8 +92,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checkout/pay', [CheckoutController::class, 'pay'])->name('checkout.pay');
         // Simulation route removed for production
         Route::post('/checkout/notify', [CheckoutController::class, 'notifyPayment'])->name('checkout.notify');
-
+        // Shipping cost route
+        Route::post('/checkout/ongkir', [CheckoutController::class, 'calculateOngkir'])->name('checkout.ongkir');
         // Transactions routes (view user's own orders)
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         // Cancel a user's pending transaction
         Route::post('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');

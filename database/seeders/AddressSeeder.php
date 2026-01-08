@@ -20,6 +20,8 @@ class AddressSeeder extends Seeder
                     'phone' => $user->phone ?? null,
                     'address_text' => 'Jalan Contoh No. ' . ($i + 1),
                     'city' => 'Bandung',
+                    'district' => 'Kecamatan Contoh',
+                    'subdistrict' => 'Kelurahan Contoh',
                     'province' => 'Jawa Barat',
                     'postal_code' => '40135',
                     'is_primary' => $i === 0,
