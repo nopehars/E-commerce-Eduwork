@@ -21,4 +21,10 @@ class HomeController extends Controller
     {
         return view('user.contact.index');
     }
+
+    // New contact method
+    public function contact()
+    {
+        return view('user.contact.index');
+    }
 }
